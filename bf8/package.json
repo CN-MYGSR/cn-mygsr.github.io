@@ -1,0 +1,47 @@
+{
+  "name": "battlefield8-2010",
+  "version": "1.0.0",
+  "description": "战地8：2010 - 终极现代全面战争",
+  "main": "main.js",
+  "author": "BF8 Team",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.bf8.battlefield8",
+    "productName": "战地8：2010",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "_reg.html",
+      "css/**/*",
+      "js/**/*",
+      "vendor/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "战地8：2010"
+    },
+    "electronLanguages": [
+      "zh-CN"
+    ]
+  }
+}

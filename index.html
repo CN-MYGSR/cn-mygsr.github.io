@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏大厅</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0a0e17 0%, #1a2634 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            color: white;
+            text-align: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 50px 80px;
+            border-radius: 40px;
+            border: 2px solid #ff9900;
+            box-shadow: 0 0 60px rgba(255, 153, 0, 0.3);
+        }
+        h1 {
+            font-size: 48px;
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px #ff9900;
+            margin-bottom: 10px;
+        }
+        .sub {
+            color: #aab;
+            font-size: 18px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 20px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .game-btn {
+            display: inline-block;
+            padding: 20px 60px;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            background: #222;
+            border-radius: 60px;
+            border: 2px solid #ff9900;
+            transition: 0.3s ease;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 0 #7f4d00;
+        }
+        .game-btn:hover {
+            transform: translateY(-5px);
+            background: #ff9900;
+            color: #111;
+            box-shadow: 0 8px 0 #7f4d00;
+        }
+        .game-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #7f4d00;
+        }
+        .btn1 { border-color: #ff4444; box-shadow: 0 4px 0 #881111; }
+        .btn1:hover { background: #ff4444; box-shadow: 0 8px 0 #881111; }
+        .btn2 { border-color: #44aaff; box-shadow: 0 4px 0 #0066aa; }
+        .btn2:hover { background: #44aaff; box-shadow: 0 8px 0 #0066aa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ 游戏大厅</h1>
+        <div class="sub">选择你要进入的战场</div>
+        <div class="btn-group">
+            <!-- 跨文件夹指向 game1 和 game2 -->
+            <a href="/game1/" class="game-btn btn1">　现代战争　</a>
+            <a href="/game2/" class="game-btn btn2">第二次世界大战</a>
+        </div>
+    </div>
+</body>
+</html>
