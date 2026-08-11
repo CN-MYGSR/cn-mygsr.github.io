@@ -1,0 +1,36 @@
+{
+  "name": "battlefield7-1940",
+  "version": "1.0.0",
+  "description": "战地7：1940 单机版",
+  "main": "main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.battlefield7.1940",
+    "productName": "战地7：1940",
+    "files": [
+      "main.js",
+      "index.html",
+      "js/**",
+      "css/**",
+      "vendor/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "requestedExecutionLevel": "asInvoker"
+    }
+  }
+}
