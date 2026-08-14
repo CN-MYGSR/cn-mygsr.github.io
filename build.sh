@@ -7,7 +7,8 @@ mkdir -p dist/bf7 dist/bf8 dist/assets
 cp index.html .nojekyll dist/
 
 for game in bf7 bf8; do
-  cp "$game/index.html" "$game/css/style.css" "dist/$game/"
+  cp "$game/index.html" "dist/$game/"
+  cp -r "$game/css" "dist/$game/"
   cp -r "$game/js" "$game/vendor" "dist/$game/"
 done
 
