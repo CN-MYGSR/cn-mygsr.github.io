@@ -407,7 +407,9 @@ if(k>0.88) vmPlayOnce('b4',()=>AudioSys.click(1300,0.22,0.03));
       ox+=-Math.sin(rel)*0.45*pin;
       oz+=(Math.cos(rel)-1)*0.45*pin;
     }
-    VM.root.position.set(px+ox,py+oy,pz+oz);
+    // 摄像机坐标上抬30像素(视模型距镜头约0.4米, 1080p下约0.015世界单位)
+    const VM_RAISE_Y=0.015;
+    VM.root.position.set(px+ox,py+oy+VM_RAISE_Y,pz+oz);
 VM.root.rotation.set(rx,ry,rz);
 positionHands(VM.key);
 if(handLOverride){ VM.arms.L.position.copy(handLOverride.pos); VM.arms.L.rotation.set(handLOverride.rot.x,handLOverride.rot.y,handLOverride.rot.z); }
