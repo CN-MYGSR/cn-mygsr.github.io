@@ -39,6 +39,7 @@
 <div id="heatWrap"><div id="heatFill"></div></div>
 <div id="scoreboard"><h3>战 场 记 分 板</h3><div id="sbCols"><div><table><thead><tr><th class="t0h">盟军</th><th>击杀</th><th>阵亡</th><th>得分</th></tr></thead><tbody id="sbL"></tbody></table></div><div><table><thead><tr><th class="t1h">德军</th><th>击杀</th><th>阵亡</th><th>得分</th></tr></thead><tbody id="sbR"></tbody></table></div></div></div>
 <div id="fps"></div>
+<div id="nvgInd" class="hidden"></div>
 <div id="clsTip"></div>
 </div>
 <div id="blackOv"></div>
@@ -115,6 +116,11 @@
 <div id="mCamp" class="mSub hidden">
 <h2 class="mSubTitle">选 择 战 役</h2>
 <div class="rowFlex" id="campRow" style="flex-wrap:wrap;justify-content:center"></div>
+<div class="secLabel" style="margin-top:14px">战场时段</div>
+<div class="rowFlex" style="justify-content:center">
+<button class="optBtn" id="dayBtn">昼 间</button>
+<button class="optBtn" id="nightBtn">夜 间</button>
+</div>
 <div class="center" style="margin-top:18px"><button class="bigBtn backBtn">返 回</button></div>
 </div>
 <div id="mMulti" class="mSub hidden">
@@ -162,9 +168,13 @@
 <div class="sliderRow">右键瞄准方式 <button class="optBtn" id="adsModeBtn" style="margin-left:10px">按住瞄准</button><span class="val" style="opacity:.65;font-size:11px">切换模式下按一下开镜、再按一下收镜</span></div>
 <div class="sliderRow">音量 <input type="range" id="volRange" min="0" max="100" value="80"><span class="val" id="volVal">80</span></div>
 <div class="sliderRow">触控按键大小 <input type="range" id="tsizeRange" min="70" max="150" value="100"><span class="val" id="tsizeVal">100%</span></div>
+<div class="sliderRow">夜视滤镜 <span class="val" style="opacity:.65;font-size:11px">战斗内按 N 开关夜视仪</span>
+<button class="optBtn" id="nvgBlue" style="margin-left:10px">蓝色</button>
+<button class="optBtn" id="nvgGreen">绿色</button>
+<button class="optBtn" id="nvgWhite">白色</button></div>
 <div class="secLabel">键位说明</div>
 <div id="ctrlHelp">
-<div><b>WASD</b> 移动 · <b>Shift</b> 疾跑 · <b>左键</b>射击 <b>右键</b>机瞄 · <b>R</b> 装填 · <b>1/2</b> 切枪 · <b>V</b> 近战</div>
+<div><b>WASD</b> 移动 · <b>Shift</b> 疾跑 · <b>左键</b>射击 <b>右键</b>机瞄 · <b>R</b> 装填 · <b>1/2</b> 切枪 · <b>V</b> 近战 · <b>N</b> 夜视仪</div>
 <div><b>G</b> 手雷 · <b>3</b> AT雷 · <b>4</b> 烟雾弹 · <b>H</b> 绷带 · <b>C</b> 蹲 · <b>Z</b> 趴 · <b>X</b> 架枪 · <b>Q/E</b> 侧身 · <b>空格</b> 跳</div>
 <div><b>F</b> 互动: 载具/机枪/反坦克炮/防空炮/迫击炮/弹药医疗补给</div>
 <div><b>B</b> 兵种技能 — 医护:放医疗箱 · 迫击炮兵:架设/回收迫击炮 · 工程兵:建造工事</div>
@@ -250,6 +260,7 @@
 <script src="js/30_main.js"></script>
 <script src="js/31_touch.js"></script>
 <script src="js/33_net.js"></script>
+<script src="js/34_nvg.js"></script>
 <script src="js/32_boot.js"></script>
 </body>
 </html>

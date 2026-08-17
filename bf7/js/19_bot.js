@@ -1,4 +1,7 @@
 'use strict';
+// 夜战: Bot 视野距离缩短、射击精度下降
+const NIGHT_VIEW= NIGHT?0.6:1;
+const NIGHT_ACC = NIGHT?1.6:1;
 class Bot {
 constructor(team,cls,name){
 this.team=team; this.name=name;
@@ -237,7 +240,7 @@ this.repathT=0;
 }
 perceive(){
 const diff=DIFF_TABLE[SETTINGS.diff];
-const viewD=70*diff.visMul;
+const viewD=70*diff.visMul*NIGHT_VIEW;
 let best=null,bestD=1e9;
 const eye=this.eyePos();
 for(const e of combatants){
@@ -293,8 +296,8 @@ if(this.target!==best||nowT-this.lastSeenT>2){
 if(this.target!==best){
 this.reactT=DIFF_TABLE[SETTINGS.diff].react*rand(1.0,1.8);
 // 拟人"甩枪": 换目标瞬间带初始偏差, 随后收敛
-this.aimErrX=rand(-1,1)*0.072*DIFF_TABLE[SETTINGS.diff].spreadMul;
-this.aimErrY=rand(-0.6,0.6)*0.055*DIFF_TABLE[SETTINGS.diff].spreadMul;
+this.aimErrX=rand(-1,1)*0.072*DIFF_TABLE[SETTINGS.diff].spreadMul*NIGHT_ACC;
+this.aimErrY=rand(-0.6,0.6)*0.055*DIFF_TABLE[SETTINGS.diff].spreadMul*NIGHT_ACC;
 }
 this.target=best;
 }
@@ -433,7 +436,7 @@ const dir2=V3(eTank.pos.x-eye2.x,eTank.pos.y+1.3-eye2.y,eTank.pos.z-eye2.z).norm
 const chk=raycastWorld(eye2,dir2,dTk);
 if(!chk||chk.dist>dTk-3){
 this.yaw=Math.atan2(eTank.pos.x-this.pos.x,eTank.pos.z-this.pos.z);
-const er2=0.012*DIFF_TABLE[SETTINGS.diff].spreadMul;
+const er2=0.012*DIFF_TABLE[SETTINGS.diff].spreadMul*NIGHT_ACC;
 dir2.x+=rand(-er2,er2); dir2.y+=rand(-er2,er2)*0.5; dir2.z+=rand(-er2,er2); dir2.normalize();
 const muzz=eye2.clone().addScaledVector(dir2,0.9);
 fireBullet(this,eye2,dir2,this.def,muzz);
@@ -1149,7 +1152,7 @@ g.pitch.rotation.x=dampF(g.pitch.rotation.x,-pit,4,dt);
 if(Math.abs(angDiff(g.face+g.yaw.rotation.y,wantYaw))<0.05&&g.cd<=0&&this.reactT<=0){
 g.cd=5.2+rand(0,1.4);
 const dir=V3(Math.sin(this.yaw)*Math.cos(pit),Math.sin(pit),Math.cos(this.yaw)*Math.cos(pit));
-const er=0.02*DIFF_TABLE[SETTINGS.diff].spreadMul;
+const er=0.02*DIFF_TABLE[SETTINGS.diff].spreadMul*NIGHT_ACC;
 dir.x+=rand(-er,er); dir.y+=rand(-er,er)*0.6; dir.z+=rand(-er,er); dir.normalize();
 const o=V3(g.x,g.y+0.25,g.z).addScaledVector(dir,2.6);
 const chk=raycastWorld(o,dir,dh);
@@ -1181,7 +1184,7 @@ g.pitch.rotation.x=dampF(g.pitch.rotation.x,-pit,5,dt);
 if(g.cd<=0&&dist<220){
 g.cd=0.62;
 const dir=V3(Math.sin(wantYaw)*Math.cos(pit),Math.sin(pit),Math.cos(wantYaw)*Math.cos(pit));
-const er=0.05*DIFF_TABLE[SETTINGS.diff].spreadMul;
+const er=0.05*DIFF_TABLE[SETTINGS.diff].spreadMul*NIGHT_ACC;
 dir.x+=rand(-er,er); dir.y+=rand(-er,er)*0.7; dir.z+=rand(-er,er); dir.normalize();
 fireFlak(g,this,dir);
 this.lastFiredT=nowT;
@@ -1276,7 +1279,7 @@ if(tgt.vel){ aimP.x+=tgt.vel.x*rand(0,0.12); aimP.z+=tgt.vel.z*rand(0,0.12); }
 const dir=aimP.sub(eye).normalize();
 const dHor=Math.hypot(tgt.pos.x-this.pos.x,tgt.pos.z-this.pos.z);
 const tSpd=tgt.vel?Math.hypot(tgt.vel.x,tgt.vel.z):0;
-let err=(2.2-this.aimSettle)*diff.spreadMul*(1+this.suppression*1.2)*(this.crouch?0.82:1)*0.022;
+let err=(2.2-this.aimSettle)*diff.spreadMul*NIGHT_ACC*(1+this.suppression*1.2)*(this.crouch?0.82:1)*0.022;
 err*=1+clamp(tSpd/5,0,1.2)*1.1;
 if(def2) err*=1.3;
 if(this.prone) err*=0.55;

@@ -34,7 +34,14 @@ location.reload();
 };
 campRow.appendChild(b);
 });
-el('menuSub').textContent=`—— ${CAMPAIGN.title} · ${CAMPAIGN.sub} ——`;
+el('menuSub').textContent=NIGHT?`—— ${CAMPAIGN.title} · 夜战 ——`:`—— ${CAMPAIGN.title} · ${CAMPAIGN.sub} ——`;
+// 战场时段: 昼/夜 (夜战模式, 切换后重载重建世界)
+{
+const syncNightUI=()=>{ el('dayBtn').classList.toggle('sel',!NIGHT); el('nightBtn').classList.toggle('sel',NIGHT); };
+syncNightUI();
+el('dayBtn').onclick=()=>{ if(NIGHT){ localStorage.setItem('sf_night','0'); location.reload(); } };
+el('nightBtn').onclick=()=>{ if(!NIGHT){ localStorage.setItem('sf_night','1'); location.reload(); } };
+}
 el('teamUS').innerHTML=`${TEAM_FACTION[0].sym} ${TEAM_FACTION[0].short} · ${TEAM_FACTION[0].name}`;
 el('teamGER').innerHTML=`${TEAM_FACTION[1].sym} ${TEAM_FACTION[1].short} · ${TEAM_FACTION[1].name}`;
 document.querySelector('.t0h').textContent=TEAM_NAME[0];

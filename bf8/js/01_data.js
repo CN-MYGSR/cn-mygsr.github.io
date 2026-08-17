@@ -72,6 +72,18 @@ taiga:{ sky:['#55627a','#828ea4','#b6c0cc','#d2d8de','#c6ccd4'], fog:0xbac6d0, h
 ground:0xd4dae0, grassC:0xbcc6cc, leaf:0x2c4a3e, roof:0xd0d6dc, dead:0.2, ruinAdd:0.05, rubbleN:3, snow:true, birds:false, treeN:175, grassMul:0.3 },
 };
 const THEME=THEMES[CAMPAIGN.theme];
+// ===== 夜战模式: 战役选择界面可切换 (localStorage sf_night='1') =====
+const NIGHT = localStorage.getItem('sf_night')==='1';
+const NIGHT_FOG = 0x0c1526;
+const NIGHT_HEMI = [0x2e3f68, 0x0d1424, 0.34];
+const NIGHT_SUN = 0xa8bfe8;
+// 昼/夜统一的主方向光基准强度 (天气系统按它乘系数)
+const KEY_BASE = NIGHT ? THEME.sunI*0.13 : THEME.sunI;
+function nightSkyStop(c){ // 昼间天空色压暗偏蓝 → 夜战天空渐变
+  const n=parseInt(c.slice(1),16), r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  const rr=Math.round(r*0.14+14), gg=Math.round(g*0.15+18), bb=Math.round(b*0.2+42);
+  return '#'+((1<<24)|(rr<<16)|(gg<<8)|bb).toString(16).slice(1);
+}
 const FACTIONS={
 us:{ name:'美国陆军', short:'美军', sym:'★', flagBg:'#3a5f9e', atn5:3,
 coat:0x4c5a4a, pants:0x8a7f5e, helm:0x4a5240, skin:0xc09878, sleeve:0x4d5240, helmet:'mod', nade:'egg',

@@ -237,6 +237,7 @@ if(e.code==='Tab'){ e.preventDefault(); document.getElementById('scoreboard').st
 if(e.repeat) return;
 keys[e.code]=true;
 if(!player.alive||!pointerLocked) return;
+if(e.code==='KeyN'&&typeof NVG!=='undefined') NVG.toggle();
 if(e.code==='KeyR') tryReload();
 if(e.code==='KeyC') InputActions.toggleCrouch();
 if(e.code==='KeyZ') InputActions.toggleProne();

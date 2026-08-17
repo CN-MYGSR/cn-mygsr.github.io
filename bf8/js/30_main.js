@@ -29,6 +29,7 @@ if(mortarMarker.visible&&!(player.alive&&player.onMortar)) mortarMarker.visible=
 updatePlayer(dt);
 updatePlayerBody(dt);
 updateCamera(dt);
+if(typeof NVG!=='undefined') NVG.update(dt);
 updateSunShadow();
 // 天空盒跟随相机, 避免远处被远裁剪面切黑
 if(SKY) SKY.position.copy(camera.position);
@@ -108,12 +109,14 @@ player.mouseDX*=Math.pow(0.0001,dt*3);
 player.mouseDY*=Math.pow(0.0001,dt*3);
 updateHUD(dt);
 updateXray(dt);
+NVG.render(()=>{
 renderer.clear();
 renderer.render(scene,camera);
 if(player.alive&&!player.onMG&&VM.root.visible){
 renderer.clearDepth();
 renderer.render(vmScene,vmCamera);
 }
+});
 if(!player.alive&&player.deployed&&!matchOver){
 respawnCd=Math.max(0,respawnCd-dt);
 el('respawnTxt').textContent=respawnCd>0?`(${Math.ceil(respawnCd)})`:'';

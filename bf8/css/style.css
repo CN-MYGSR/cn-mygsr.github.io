@@ -251,3 +251,4 @@ body.cutOn #ui, body.cutOn #touchUI { display:none !important; }
 .multiChatRow input { pointer-events:auto; flex:1; padding:8px 10px; background:rgba(255,255,255,.07); border:1px solid #555; color:#eee; border-radius:4px; font-size:13px; font-family:inherit; outline:none; }
 .multiChatRow input:focus { border-color:#d8c080; }
 .multiChatRow .optBtn { padding:8px 16px; }
+#nvgInd { position:absolute; top:62px; right:14px; font-size:12px; letter-spacing:2px; text-shadow:0 0 8px currentColor; background:rgba(0,10,5,.4); border:1px solid #9fe8a8; border-radius:4px; padding:3px 10px; }

@@ -21,9 +21,9 @@ function startBoatCut(){
 CUT.kind='boat'; CUT.t=0; CUT.dur=26; CUT.skip=false;
 if(!CUT.scene){
 CUT.scene=new THREE.Scene();
-CUT.scene.fog=new THREE.Fog(0x9db2c4,30,720);
-CUT.scene.add(new THREE.HemisphereLight(0xdce8f4,0x5a6a72,0.9));
-const dl=new THREE.DirectionalLight(0xffeed0,1.7); dl.position.set(-250,320,120); CUT.scene.add(dl);
+CUT.scene.fog=new THREE.Fog(NIGHT?NIGHT_FOG:0x9db2c4,30,720);
+CUT.scene.add(new THREE.HemisphereLight(NIGHT?NIGHT_HEMI[0]:0xdce8f4,NIGHT?NIGHT_HEMI[1]:0x5a6a72,NIGHT?NIGHT_HEMI[2]:0.9));
+const dl=new THREE.DirectionalLight(NIGHT?NIGHT_SUN:0xffeed0,NIGHT?Math.max(KEY_BASE,0.28):1.7); dl.position.set(-250,320,120); CUT.scene.add(dl);
 // 天空(复用主场景天空纹理)
 const sky2=new THREE.Mesh(SKY.geometry,new THREE.MeshBasicMaterial({map:SKY.material.map,side:THREE.BackSide,fog:false}));
 sky2.scale.setScalar(2); CUT.scene.add(sky2);
