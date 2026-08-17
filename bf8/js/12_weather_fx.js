@@ -25,8 +25,8 @@ precipObj=new THREE.Points(geo,new THREE.PointsMaterial({color:0xf2f5f8,size:0.1
 precipObj.frustumCulled=false;
 scene.add(precipObj);
 }
-if(WEATHER==='overcast'||WEATHER==='storm'){ sun.intensity=THEME.sunI*0.55; hemi.intensity=THEME.hemi[2]*1.15; }
-else if(WEATHER==='rain') sun.intensity=THEME.sunI*0.7;
+if(WEATHER==='overcast'||WEATHER==='storm'){ sun.intensity=KEY_BASE*0.55; hemi.intensity=(NIGHT?NIGHT_HEMI[2]:THEME.hemi[2])*1.15; }
+else if(WEATHER==='rain') sun.intensity=KEY_BASE*0.7;
 }
 function updateWeather(dt){
 if(precipObj){
@@ -60,7 +60,7 @@ lightningT-=dt;
 if(lightningT<=0){
 lightningT=rand(7,17);
 stormFlash=1;
-const base=THEME.sunI*0.55;
+const base=KEY_BASE*0.55;
 sun.intensity=THEME.sunI*2.6;
 setTimeout(()=>{ sun.intensity=THEME.sunI*1.6; },70);
 setTimeout(()=>{ sun.intensity=base; },160);

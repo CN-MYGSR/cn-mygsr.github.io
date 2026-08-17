@@ -1,7 +1,7 @@
 'use strict';
 // ===================== 武器改装系统 =====================
 // 每位玩家的武器可在部署时加装配件, 改装后模型与属性同时变化
-// 三个槽位: optic(瞄具) · muzzle(枪口) · magazine(弹匣)
+// 四个槽位: optic(瞄具) · muzzle(枪口) · magazine(弹匣) · gear(战术配件/夜视仪)
 
 const ALL_MODS = {
   // ---- 瞄具 ----
@@ -9,6 +9,7 @@ const ALL_MODS = {
   optic_reflex:   { slot:'optic', name:'反射瞄具',   desc:'更快瞄准·视野开阔', icon:'◉', affects:{ adsFov:1.25, spreadAds:0.85 }, cost:80 },
   optic_2x:       { slot:'optic', name:'2倍瞄准镜',  desc:'中距精确射击',     icon:'⊕', affects:{ adsFov:0.58, spreadAds:0.62, spreadHip:1.1 }, cost:120 },
   optic_4x:       { slot:'optic', name:'4倍狙击镜',  desc:'远距高倍精确',     icon:'⦿', affects:{ adsFov:0.34, spreadAds:0.48, spreadHip:1.2 }, cost:180 },
+  optic_nvg:      { slot:'optic', name:'夜视瞄具',   desc:'夜视仪专用·中距夜战瞄准', icon:'◑', affects:{ adsFov:0.92, spreadAds:0.85 }, cost:180 },
 
   // ---- 枪口 ----
   muzzle_standard:  { slot:'muzzle', name:'标准枪口', desc:'无改动',           icon:'─', affects:{} },
@@ -20,6 +21,10 @@ const ALL_MODS = {
   mag_standard:     { slot:'mag', name:'标准弹匣',   desc:'默认容量',          icon:'□', affects:{} },
   mag_ext:          { slot:'mag', name:'扩容弹匣',   desc:'弹容量 +40%·装填稍慢',icon:'▣', affects:{ magMul:1.4, reload:1.15 }, cost:100 },
   mag_quick:        { slot:'mag', name:'快拔弹匣',   desc:'装填加快·弹容 -15%',icon:'▤', affects:{ magMul:0.85, reload:0.78 }, cost:100 },
+
+  // ---- 战术配件 ----
+  gear_none:        { slot:'gear', name:'无配件',   desc:'不携带夜视仪',       icon:'▢', affects:{} },
+  gear_nvg:         { slot:'gear', name:'夜视仪',   desc:'夜战增强视距·战斗内按 N 开关', icon:'◐', affects:{}, cost:150 },
 };
 
 // 每个武器可用的模组 (按武器 key)
@@ -88,6 +93,11 @@ const MOD_AVAIL = {
   p320:      { optic:['optic_iron'],                                    muzzle:['muzzle_standard','muzzle_supp'],                    mag:['mag_standard','mag_ext'] },
   g17:       { optic:['optic_iron'],                                    muzzle:['muzzle_standard','muzzle_supp'],                    mag:['mag_standard','mag_ext'] },
 };
+// 战术配件槽: 所有武器可选 无配件/夜视仪; 有瞄具槽的武器追加 夜视瞄具
+Object.values(MOD_AVAIL).forEach(a=>{
+  a.gear=['gear_none','gear_nvg'];
+  if(a.optic&&a.optic.length>1) a.optic.push('optic_nvg');
+});
 
 // 玩家存储的改装选择: { weaponKey: { optic:'optic_2x', muzzle:'muzzle_comp', mag:'mag_standard' } }
 let PLAYER_MODS = {};
@@ -95,7 +105,7 @@ try { PLAYER_MODS = JSON.parse(localStorage.getItem('sf_mods')||'{}'); } catch(e
 
 function savePlayerMods() { try { localStorage.setItem('sf_mods', JSON.stringify(PLAYER_MODS)); } catch(e) {} }
 
-function getModSlots(key) { return MOD_AVAIL[key] || { optic:['optic_iron'], muzzle:['muzzle_standard'], mag:['mag_standard'] }; }
+function getModSlots(key) { return MOD_AVAIL[key] || { optic:['optic_iron'], muzzle:['muzzle_standard'], mag:['mag_standard'], gear:['gear_none'] }; }
 function getModChoice(key, slot) {
   const wm = PLAYER_MODS[key] || {};
   const avail = getModSlots(key);
@@ -104,6 +114,11 @@ function getModChoice(key, slot) {
 }
 function setModChoice(key, slot, modId) { if(!PLAYER_MODS[key]) PLAYER_MODS[key]={}; PLAYER_MODS[key][slot]=modId; savePlayerMods(); }
 
+// 装备夜视仪(gear_nvg)后, 光学瞄具(反射/2倍/4倍)不可用, 仅机瞄或夜视瞄具可用
+const OPTIC_BLOCKED=['optic_reflex','optic_2x','optic_4x'];
+function opticBlocked(key) { return getModChoice(key,'gear')==='gear_nvg' && OPTIC_BLOCKED.includes(getModChoice(key,'optic')); }
+function effectiveOptic(key) { return opticBlocked(key) ? 'optic_iron' : getModChoice(key,'optic'); }
+
 // 将改装效果应用到武器定义(返回一份浅拷贝+数值乘算)
 function moddedDef(key) {
   const base = WPN_DEFS[key];
@@ -111,6 +126,7 @@ function moddedDef(key) {
   const out = Object.assign({}, base);
   ['optic','muzzle','mag'].forEach(slot => {
     const mid = getModChoice(key, slot);
+    if(slot==='optic'&&opticBlocked(key)) return;
     const mod = ALL_MODS[mid];
     if(!mod||!mod.affects) return;
     const a = mod.affects;
@@ -137,7 +153,8 @@ function addModVisuals(parts, key) {
   const alreadyScoped = baseDef && baseDef.scoped;
 
   // 瞄具: 仅非镜武器可加装; 镜武器(春田PU等)已有内建镜, 不改动视角
-  const optic = getModChoice(key, 'optic');
+  // 夜视仪使用中: 光学瞄具强制退回机瞄, 不渲染镜模型
+  const optic = effectiveOptic(key);
   const adsA = parts.anchors && parts.anchors.ads;
   if(!alreadyScoped && adsA && optic !== 'optic_iron') {
     const p0y = adsA.pos.y, p0z = adsA.pos.z;
@@ -167,6 +184,18 @@ function addModVisuals(parts, key) {
       r1.position.set(0, p0y, p0z-0.01); G.add(r1);
       const r2 = r1.clone(); r2.position.z = p0z-0.09; G.add(r2);
       adsA.pos.y += 0.035;
+      adsA.pos.z += 0.05;
+    } else if(optic === 'optic_nvg') {
+      // 夜视瞄具: 短粗镜筒 + 荧光绿物镜
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.02,0.11,8), gl);
+      tube.position.set(0, p0y-0.002, p0z-0.05); tube.rotation.x = HPI; G.add(tube);
+      const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.014,0.02,8), gm);
+      lens.position.set(0, p0y-0.002, p0z-0.115); lens.rotation.x = HPI; G.add(lens);
+      const lensG = new THREE.Mesh(new THREE.CylinderGeometry(0.011,0.011,0.004,8), new THREE.MeshLambertMaterial({color:0x57d168,emissive:0x1c5c28}));
+      lensG.position.set(0, p0y-0.002, p0z-0.124); lensG.rotation.x = HPI; G.add(lensG);
+      const r1 = new THREE.Mesh(new THREE.TorusGeometry(0.017,0.0025,8,10), gl);
+      r1.position.set(0, p0y-0.002, p0z-0.02); G.add(r1);
+      adsA.pos.y += 0.028;
       adsA.pos.z += 0.05;
     }
   }
@@ -208,9 +237,9 @@ function addModVisuals(parts, key) {
 // 改装外观显示名称 (部署界面)
 function modDisplayName(key) {
   const parts = [];
-  ['optic','muzzle','mag'].forEach(s => {
+  ['optic','muzzle','mag','gear'].forEach(s => {
     const mid = getModChoice(key, s);
-    if(mid && mid !== 'optic_iron' && mid !== 'muzzle_standard' && mid !== 'mag_standard') {
+    if(mid && mid !== 'optic_iron' && mid !== 'muzzle_standard' && mid !== 'mag_standard' && mid !== 'gear_none') {
       parts.push(ALL_MODS[mid].name);
     }
   });
@@ -220,7 +249,7 @@ function modDisplayName(key) {
 // 改装总开销
 function modTotalCost(key) {
   let total = 0;
-  ['optic','muzzle','mag'].forEach(s => {
+  ['optic','muzzle','mag','gear'].forEach(s => {
     const mid = getModChoice(key, s);
     if(mid && ALL_MODS[mid].cost) total += ALL_MODS[mid].cost;
   });

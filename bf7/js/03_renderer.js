@@ -27,20 +27,20 @@ if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; }
 // 高画质: 软阴影 + 电影感滤镜; 低画质硬阴影无滤镜
 renderer.shadowMap.type=q===2?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 renderer.domElement.style.filter=q===2?'saturate(1.1) contrast(1.06) brightness(1.02)':(q===1?'saturate(1.04) contrast(1.02)':'none');
-scene.fog.far = (q===0?240:(q===1?340:420))*((WEATHER==='rain'||WEATHER==='storm')?0.78:(WEATHER==='snow'?0.85:1));
+scene.fog.far = (NIGHT?(q===0?150:(q===1?210:260)):(q===0?240:(q===1?340:420)))*((WEATHER==='rain'||WEATHER==='storm')?0.78:(WEATHER==='snow'?0.85:1));
 }
 addEventListener('resize',()=>{
 camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
 vmCamera.aspect=camera.aspect; vmCamera.updateProjectionMatrix();
 renderer.setSize(innerWidth,innerHeight);
 });
-scene.fog = new THREE.Fog(THEME.fog, 40, 340);
+scene.fog = new THREE.Fog(NIGHT?NIGHT_FOG:THEME.fog, NIGHT?18:40, NIGHT?240:340);
 let SKY=null;
 {
 const c=document.createElement('canvas'); c.width=16; c.height=256;
 const g=c.getContext('2d');
 const gr=g.createLinearGradient(0,0,0,256);
-const st=THEME.sky;
+const st=NIGHT?THEME.sky.map(nightSkyStop):THEME.sky;
 gr.addColorStop(0,st[0]); gr.addColorStop(0.42,st[1]);
 gr.addColorStop(0.62,st[2]); gr.addColorStop(0.75,st[3]); gr.addColorStop(1,st[4]);
 g.fillStyle=gr; g.fillRect(0,0,16,256);
@@ -49,9 +49,9 @@ SKY=new THREE.Mesh(new THREE.SphereGeometry(760,24,16), new THREE.MeshBasicMater
 SKY.frustumCulled=false;
 scene.add(SKY);
 }
-const hemi = new THREE.HemisphereLight(THEME.hemi[0], THEME.hemi[1], THEME.hemi[2]);
+const hemi = new THREE.HemisphereLight(NIGHT?NIGHT_HEMI[0]:THEME.hemi[0], NIGHT?NIGHT_HEMI[1]:THEME.hemi[1], NIGHT?NIGHT_HEMI[2]:THEME.hemi[2]);
 scene.add(hemi);
-const sun = new THREE.DirectionalLight(THEME.sun, THEME.sunI);
+const sun = new THREE.DirectionalLight(NIGHT?NIGHT_SUN:THEME.sun, KEY_BASE);
 sun.position.set(-90, 120, 40);
 sun.castShadow = true;
 sun.shadow.camera.left=-60; sun.shadow.camera.right=60;
@@ -64,16 +64,26 @@ const texel=SHADOW_RANGE*2/sun.shadow.mapSize.x;
 const cx=Math.round(camera.position.x/texel)*texel;
 const cz=Math.round(camera.position.z/texel)*texel;
 sun.target.position.set(cx,0,cz);
-sun.position.set(cx-72,96,cz+32);
+if(NIGHT) sun.position.set(cx+70,140,cz-44);
+else sun.position.set(cx-72,96,cz+32);
 }
 {
 const c=document.createElement('canvas'); c.width=128; c.height=128;
 const g=c.getContext('2d');
-const gr=g.createRadialGradient(64,64,2,64,64,64);
-gr.addColorStop(0,'rgba(255,250,230,1)'); gr.addColorStop(0.25,'rgba(255,240,200,.55)'); gr.addColorStop(1,'rgba(255,240,200,0)');
-g.fillStyle=gr; g.fillRect(0,0,128,128);
-const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),fog:false,depthWrite:false}));
-sp.position.set(-380,480,170); sp.scale.setScalar(220); scene.add(sp);
+if(NIGHT){
+  // 月亮: 冷白辉光
+  const gr=g.createRadialGradient(64,64,2,64,64,64);
+  gr.addColorStop(0,'rgba(232,240,255,1)'); gr.addColorStop(0.3,'rgba(190,212,242,.72)'); gr.addColorStop(1,'rgba(190,212,242,0)');
+  g.fillStyle=gr; g.fillRect(0,0,128,128);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),fog:false,depthWrite:false}));
+  sp.position.set(340,330,-280); sp.scale.setScalar(58); scene.add(sp);
+} else {
+  const gr=g.createRadialGradient(64,64,2,64,64,64);
+  gr.addColorStop(0,'rgba(255,250,230,1)'); gr.addColorStop(0.25,'rgba(255,240,200,.55)'); gr.addColorStop(1,'rgba(255,240,200,0)');
+  g.fillStyle=gr; g.fillRect(0,0,128,128);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),fog:false,depthWrite:false}));
+  sp.position.set(-380,480,170); sp.scale.setScalar(220); scene.add(sp);
+}
 }
 {
 const c=document.createElement('canvas'); c.width=256; c.height=128;
@@ -86,11 +96,28 @@ g.fillStyle=gr; g.fillRect(0,0,256,128);
 }
 const tex=new THREE.CanvasTexture(c);
 for(let i=0;i<9;i++){
-const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:rand(.5,.85),fog:false,depthWrite:false}));
+const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:NIGHT?rand(0.16,0.34):rand(.5,.85),color:NIGHT?0x9fb4d8:0xffffff,fog:false,depthWrite:false}));
 sp.position.set(rand(-600,600), rand(180,280), rand(-600,600));
 sp.scale.set(rand(180,340),rand(60,110),1);
 scene.add(sp);
 }
+}
+if(NIGHT){
+// 星空
+const starN=240;
+const sgeo=new THREE.BufferGeometry();
+const spos=new Float32Array(starN*3);
+for(let i=0;i<starN;i++){
+const th=rand(0,TAU), ph=Math.acos(rand(-0.92,0.92));
+const r=755;
+spos[i*3]=Math.sin(ph)*Math.cos(th)*r;
+spos[i*3+1]=Math.cos(ph)*r;
+spos[i*3+2]=Math.sin(ph)*Math.sin(th)*r;
+}
+sgeo.setAttribute('position',new THREE.BufferAttribute(spos,3));
+const stars=new THREE.Points(sgeo,new THREE.PointsMaterial({color:0xe8eef8,size:1.5,sizeAttenuation:false,transparent:true,opacity:0.8,fog:false,depthWrite:false}));
+stars.frustumCulled=false;
+scene.add(stars);
 }
 vmScene.add(new THREE.HemisphereLight(0xcfd8e8, 0x5a5844, 0.9));
 { const l=new THREE.DirectionalLight(0xffeed0,1.6); l.position.set(-1,1.6,0.6); vmScene.add(l); }

@@ -34,7 +34,14 @@ location.reload();
 };
 campRow.appendChild(b);
 });
-el('menuSub').textContent=`—— ${CAMPAIGN.title} · ${CAMPAIGN.sub} ——`;
+el('menuSub').textContent=NIGHT?`—— ${CAMPAIGN.title} · 夜战 ——`:`—— ${CAMPAIGN.title} · ${CAMPAIGN.sub} ——`;
+// 战场时段: 昼/夜 (夜战模式, 切换后重载重建世界)
+{
+const syncNightUI=()=>{ el('dayBtn').classList.toggle('sel',!NIGHT); el('nightBtn').classList.toggle('sel',NIGHT); };
+syncNightUI();
+el('dayBtn').onclick=()=>{ if(NIGHT){ localStorage.setItem('sf_night','0'); location.reload(); } };
+el('nightBtn').onclick=()=>{ if(!NIGHT){ localStorage.setItem('sf_night','1'); location.reload(); } };
+}
 el('teamUS').innerHTML=`${TEAM_FACTION[0].sym} ${TEAM_FACTION[0].short} · ${TEAM_FACTION[0].name}`;
 el('teamGER').innerHTML=`${TEAM_FACTION[1].sym} ${TEAM_FACTION[1].short} · ${TEAM_FACTION[1].name}`;
 document.querySelector('.t0h').textContent=TEAM_NAME[0];
@@ -72,6 +79,22 @@ syncAdsBtn();
 };
 }
 el('volRange').oninput=e=>{ SETTINGS.vol=e.target.value/100; el('volVal').textContent=e.target.value; AudioSys.setVol(SETTINGS.vol); };
+// 夜视滤镜: 蓝色/绿色/白色 (战斗内按 N 开关)
+{
+const FILTERS={blue:['nvgBlue','蓝色'],green:['nvgGreen','绿色'],white:['nvgWhite','白色']};
+const syncNvgUI=()=>{
+const cur=localStorage.getItem('sf_nvg')||'green';
+Object.keys(FILTERS).forEach(k=>el(FILTERS[k][0]).classList.toggle('sel',k===cur));
+};
+syncNvgUI();
+Object.keys(FILTERS).forEach(k=>{
+el(FILTERS[k][0]).onclick=()=>{
+localStorage.setItem('sf_nvg',k);
+if(typeof NVG!=='undefined') NVG.setFilter(k);
+syncNvgUI();
+};
+});
+}
 el('startBtn').onclick=()=>{
 AudioSys.init();
 NET.stop();
@@ -230,11 +253,12 @@ const avail=getModSlots(mainKey);
 if(!avail){ labelEl.style.display='none'; costEl.style.display='none'; return; }
 labelEl.style.display='block';
 costEl.style.display='block';
-const slotNames={optic:'瞄具',muzzle:'枪口',mag:'弹匣'};
-['optic','muzzle','mag'].forEach(slot=>{
+const slotNames={optic:'瞄具',muzzle:'枪口',mag:'弹匣',gear:'战术配件'};
+['optic','muzzle','mag','gear'].forEach(slot=>{
 const list=avail[slot]||[];
 if(!list.length||list.length<=1) return;
 const cur=getModChoice(mainKey,slot);
+if(slot==='optic'&&opticBlocked(mainKey)) setModChoice(mainKey,'optic','optic_iron');
 const wrapper=document.createElement('div');
 wrapper.style.cssText='margin:4px 6px';
 const lbl2=document.createElement('span');
@@ -252,6 +276,14 @@ const costStr=m.cost?' ('+m.cost+'分)':'';
 btn.textContent=(m.icon||'')+' '+m.name+costStr;
 btn.style.cssText='font-size:12px;padding:5px 10px;';
 btn.title=m.desc||'';
+if(slot==='optic'&&OPTIC_BLOCKED.includes(mid)&&getModChoice(mainKey,'gear')==='gear_nvg'){
+btn.disabled=true;
+btn.title='夜视仪使用中，光学瞄具不可用';
+}
+if(mid==='optic_nvg'&&getModChoice(mainKey,'gear')!=='gear_nvg'){
+btn.disabled=true;
+btn.title='需先装备夜视仪 (战术配件)';
+}
 btn.onclick=()=>{
 setModChoice(mainKey,slot,mid);
 row.querySelectorAll('.modOptBtn').forEach(b=>b.classList.remove('sel'));
